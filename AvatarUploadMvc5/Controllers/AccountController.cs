@@ -34,6 +34,7 @@ namespace AvatarUploadMvc5.Controllers
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
+            //UserManager.FindByEmail()
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }

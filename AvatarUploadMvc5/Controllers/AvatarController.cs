@@ -1,4 +1,7 @@
-﻿using System;
+﻿using AvatarUploadMvc5.Models;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,6 +24,19 @@ namespace AvatarUploadMvc5.Controllers
         private const string _avatarPath = "/Avatars";
 
         private readonly string[] _imageFileExtensions = { ".jpg", ".png", ".gif", ".jpeg" };
+        private UserManager<ApplicationUser> userManager;
+
+        public AvatarController()
+            : this(new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(new ApplicationDbContext())))
+        {
+        }
+
+        public AvatarController(UserManager<ApplicationUser> _userManager)
+        {
+            UserManager = _userManager;
+        }
+
+        public UserManager<ApplicationUser> UserManager { get; private set; }
 
         [HttpGet]
         public ActionResult Upload()
@@ -57,6 +73,8 @@ namespace AvatarUploadMvc5.Controllers
         {
             try
             {
+               
+
                 // Get file from temporary folder, ...
                 var fn = Path.Combine(Server.MapPath(_mapTempFolder), Path.GetFileName(fileName));
 
@@ -99,6 +117,9 @@ namespace AvatarUploadMvc5.Controllers
                 }
 
                 img.Save(newFileLocation);
+
+                var _user = UserManager.FindByEmail(User.Identity.Name);
+                _user.ImgPath = newFileName;
                 return Json(new { success = true, avatarFileLocation = newFileName });
             }
             catch (Exception ex)
@@ -170,6 +191,28 @@ namespace AvatarUploadMvc5.Controllers
             {
                 // Deliberately empty.
             }
+        }
+
+
+        [HttpGet]
+        public ActionResult Users()
+        {
+            List<OutUser> users = new List<OutUser>(); 
+            using (ApplicationDbContext db = new ApplicationDbContext())
+            {
+                foreach(var user in db.Users)
+                {
+                    users.Add(new OutUser()
+                    {
+                        Email = user.Email,
+                        //Role = user.Roles.ToString(),
+                        //ImgPath = user.
+
+                    });
+                }
+                
+            }
+            return View(users);
         }
     }
 }
